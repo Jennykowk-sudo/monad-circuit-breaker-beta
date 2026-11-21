@@ -28,7 +28,8 @@ window.MCB_CONFIG = {
     rpcWs: "wss://testnet-rpc.monad.xyz",
     // ✅ Monad 官方区块浏览器（用于「查看交易/合约」测试链接）
     explorer: "https://testnet.monadexplorer.com",
-    // ✅ 订阅方法：标准 Ethereum newHeads（实测通过；monadNewHeads 无效）
+    // ✅ 订阅方法：标准 Ethereum newHeads（有序推送，实测通过）
+    // 注意：monadNewHeads 也有效，但推送的是乱序区块（84386→84390→84387…），故不用。
     blockSubscription: "newHeads",
     faucet: "https://faucet.monad.xyz",
   },
