@@ -29,46 +29,7 @@ git push -u origin main
 
 > 若仓库已在 GitHub 建好，用 `git remote set-url origin <你的仓库URL>` 替换第 5 行。
 
-## 部署到 Vercel
 
-**方式 A（推荐，最省事）**
-1. 打开 https://vercel.com/new
-2. 用 GitHub 登录，Import 你刚上传的仓库
-3. Framework 选 **Other / 无框架**，`vercel.json` 会被自动识别
-4. Build Command 留空，Output Directory 填 `.`（根目录）
-5. 点 Deploy，得到 `https://<项目名>.vercel.app`
-
-**方式 B（命令行）**
-```bash
-npm i -g vercel
-cd monad-circuit-breaker
-vercel --prod
-```
-
-**绑定自定义域名**：Vercel 项目 → Settings → Domains → 添加域名 → 按提示改 DNS。
-
-## 部署前要确认的配置（config.js）
-
-| 项 | 当前状态 | 说明 |
-|---|---|---|
-| `network.rpcHttp / rpcWs` | ✅ 官方默认值 | 生产建议换自己的服务端 RPC |
-| `network.explorer` | ✅ 官方 | 测试网浏览器 |
-| `links.tutorial1` | ✅ Pimlico tutorial1 | 无 Gas / Paymaster 教程 |
-| `links.resources` | ✅ 你的 Notion 页 | 项目资源入口 |
-| `links.monadBridge` | ✅ 你提供的 Bridge | 第三方桥，谨慎核验 |
-| `links.privyApiDocs` | ✅ Privy 文档 | App ID / 鉴权说明 |
-| `wallet.privyAppId` | ⚠️ 空 | 填 Privy App ID 后接 SDK |
-| `protection.contractAddress` | ⚠️ 空 | 你的保护合约地址 |
-| `protection.testTokenAddress` | ⚠️ 已填但未核验 | `0x88b8…055d`，两网均无字节码，按合成占位处理 |
-| `flags.liveWallet / liveProtection` | ⚠️ false | 真实能力就绪后再打开 |
-
-## 已核实的合约地址（Monad Testnet，来自官方 registry）
-
-Multicall3 `0xca11…ca11`、WMON `0xfb8b…c541`、USDC `0x534b…3a3`、
-UniversalRouter `0x1b7b…c22`、CreateX `0xba5e…a5ed`、Permit2 `0x0000…ba3`。
-完整来源：https://github.com/monad-crypto/protocols
-
-> UniswapV2/V3 Factory、USDT、WBTC、WETH 在官方测试网清单中**未收录**，页面留空待核验，切勿用主网地址顶替。
 
 ## 安全提示
 
