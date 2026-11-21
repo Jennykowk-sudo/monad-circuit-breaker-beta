@@ -4,260 +4,390 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#080b13">
-<meta name="description" content="Circuit Breaker —— 在 Monad 网络上运行的 DeFi 风险保护。市场异常时，让保护先于恐慌发生。">
-<title>Circuit Breaker · Monad DeFi 风险保护</title>
+<meta name="description" content="Circuit Breaker —— 在 Monad 上自动保护你的 DeFi 资产。市场异常时，让保护先于恐慌发生。">
+<title>Circuit Breaker · Monad 链上资产保护</title>
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-<header>
- <div class="brand">
-  <div class="mark">ϟ</div>
-  <div><div class="brand-name">CIRCUIT BREAKER</div><div class="brand-sub">DEFI RISK PROTECTION · ON MONAD</div></div>
- </div>
- <nav class="topnav">
-  <a href="#journey">如何运作</a>
-  <a href="#dashboard">保护面板</a>
-  <a href="#resources">资源与测试</a>
- </nav>
- <div class="header-actions">
-  <span class="chip" id="networkChip">MONAD TESTNET · 10143</span>
-  <span class="chip warn" id="modeChip">演示模式</span>
-  <button class="btn primary" id="headerConnect">连接钱包</button>
- </div>
+
+<!-- ============ 顶栏 ============ -->
+<header class="site-header">
+  <a class="brand" href="#top" aria-label="Circuit Breaker 首页">
+    <span class="brand-mark">ϟ</span>
+    <span class="brand-text"><b>CIRCUIT BREAKER</b><small>ON MONAD</small></span>
+  </a>
+
+  <nav class="site-nav" id="siteNav">
+    <a href="#how">如何运作</a>
+    <a href="#safety">安全保障</a>
+    <a href="#faq">常见问题</a>
+  </nav>
+
+  <div class="header-right">
+    <span class="network-pill"><i></i><span id="networkLabel">MONAD TESTNET</span></span>
+    <button class="btn btn-primary" id="connectBtn">连接钱包</button>
+    <div class="wallet-chip" id="walletChip" hidden>
+      <span class="wallet-avatar"></span>
+      <span id="walletAddress">0x0000…0000</span>
+      <button class="wallet-menu-btn" id="walletMenuBtn" aria-label="钱包菜单">▾</button>
+      <div class="wallet-dropdown" id="walletDropdown" hidden>
+        <div class="dropdown-label">已连接 · Monad Testnet</div>
+        <button id="copyAddressBtn">复制地址</button>
+        <button id="disconnectBtn">断开连接</button>
+      </div>
+    </div>
+  </div>
 </header>
 
-<main>
- <div class="notice" id="topNotice"><b>演示环境</b><span>本站所有链上交互已锁定 <strong>Monad Testnet · chainId 10143</strong>（链守卫校验 RPC 与钱包链，拒绝主网/其它链）。当前使用合成行情与只读观察，不会发送真实交易。前端托管在 Vercel，链上部分指向 Monad；Privy、无 Gas 代付与保护合约均预留了适配位置。</span></div>
-
- <!-- HERO -->
- <section class="hero">
-  <div class="hero-copy">
-   <div class="hero-kicker">MONAD · AUTONOMOUS RISK PROTECTION</div>
-   <h1>市场出现异常时，<br><em>让保护先于恐慌发生。</em></h1>
-   <p class="hero-lead">Circuit Breaker 持续观察价格与流动性变化。当风险触及你设定的条件，按预先授权的规则自动尝试保护性退出。资产范围、退出上限与撤销权，始终在你手中。</p>
-   <div class="hero-actions">
-    <button class="btn primary" id="heroTry">体验一次风险保护</button>
-    <a class="btn" href="#journey">了解保护机制</a>
-   </div>
-   <div class="hero-note" id="heroNote">交互式演示 · 合成行情 · 不操作真实资产</div>
-  </div>
-  <div class="hero-visual"><div class="hero-orbit"><div class="hero-core"><div><b>CB</b><br><span>PROTECTED</span></div></div></div></div>
- </section>
-
- <!-- VALUE STRIP -->
- <section class="value-strip">
-  <div class="value-item"><b>提前发现异常</b><span>联合观察价格冲击、流动性变化与跨市场偏离，缩短「发现风险」到「采取行动」的时间差。</span></div>
-  <div class="value-item"><b>规则由你决定</b><span>保护对象、风险阈值、最大退出比例与滑点上限均可预设并受约束，Keeper 无法扩大边界。</span></div>
-  <div class="value-item"><b>每一步都有证据</b><span>记录触发原因、保护状态与执行回执，明确区分模拟结果与链上可核验事实。</span></div>
- </section>
-
- <!-- JOURNEY -->
- <section class="journey" id="journey">
-  <div class="journey-top">
-   <div>
-    <div class="eyebrow">PRODUCT JOURNEY · 端到端价值流程</div>
-    <div class="journey-title">你的资产保护流程</div>
-    <div class="journey-desc">从了解价值到查看结果，按步骤完成。演示中的行情与执行结果都会明确标注为模拟。</div>
-   </div>
-   <span class="tag sim" id="journeyStatus">0 / 8 · 演示旅程</span>
-  </div>
-  <div class="journey-progress"><i id="journeyProgress"></i></div>
-  <div class="journey-grid">
-   <article class="journey-step" data-step="1"><span class="num">01 · PROVE VALUE</span><b>看看风险如何发生</b><p>播放价格或流动性冲击，观察异常信号如何被捕获。</p><button class="btn primary" id="journey1">播放市场波动</button><div class="step-state" id="stepState1">READY · SYNTHETIC</div></article>
-   <article class="journey-step" data-step="2"><span class="num">02 · EXPLAIN</span><b>了解保护方式</b><p>解释暂停买入、撤销订单、受限卖出与故障安全边界。</p><button class="btn" id="journey2">查看保护说明</button><div class="step-state" id="stepState2">NOT VIEWED</div></article>
-   <article class="journey-step" data-step="3"><span class="num">03 · CONFIGURE</span><b>选择保护资产</b><p>选择资产并设置风险阈值、最大退出比例、滑点与有效期。</p><button class="btn" id="journey3">设置保护规则</button><div class="step-state" id="stepState3">NOT CONFIGURED</div></article>
-   <article class="journey-step" data-step="4"><span class="num">04 · AUTHORIZE</span><b>连接钱包并授权</b><p>进入 Privy 嵌入式钱包与授权说明；演示授权不会签名或授予链上权限。</p><button class="btn" id="journey4">连接演示钱包</button><div class="step-state" id="stepState4">NOT AUTHORIZED</div></article>
-   <article class="journey-step" data-step="5"><span class="num">05 · INTEGRATION</span><b>确认连接可用</b><p>检查 Monad Testnet、合约字节码与钱包 / Gas 适配状态。</p><button class="btn" id="journey5">检查网络与合约</button><div class="step-state" id="stepState5">NOT CHECKED</div></article>
-   <article class="journey-step" data-step="6"><span class="num">06 · MONITOR</span><b>开启风险监测</b><p>观察风险分数、跨市场信号、数据新鲜度与事件时间线。</p><button class="btn" id="journey6">查看实时监测</button><div class="step-state" id="stepState6">NOT MONITORING</div></article>
-   <article class="journey-step" data-step="7"><span class="num">07 · PROTECT</span><b>触发保护动作</b><p>风险超过阈值后运行保护流程；当前只执行模拟与 fail-safe 检查。</p><button class="btn red" id="journey7">模拟执行保护</button><div class="step-state" id="stepState7">ARMED · SIMULATION</div></article>
-   <article class="journey-step" data-step="8"><span class="num">08 · OUTCOME</span><b>查看保护结果</b><p>查看执行状态、证据记录与影响指标，区分真实执行与反事实估算。</p><button class="btn" id="journey8">查看结果记录</button><div class="step-state" id="stepState8">NO RECEIPT</div></article>
-  </div>
-  <div class="journey-outcome">
-   <div><small>当前演示执行状态</small><strong id="journeyExecState" style="color:var(--amber)">NOT EXECUTED · SIMULATION</strong></div>
-   <div><small>链上交易回执</small><strong id="journeyTxState">NONE</strong></div>
-   <div><small>成果口径</small><strong id="journeyImpactState">NO REALIZED SAVINGS</strong></div>
-  </div>
- </section>
-
- <!-- DASHBOARD -->
- <div class="topline" id="dashboard">
-  <div><div class="eyebrow">01 / 市场风险与保护面板</div><div class="headline">市场风险保护面板</div><div class="subhead">查看市场信号、风险状态与保护规则。当前数据为演示用途。</div></div>
-  <div class="controls">
-   <button class="btn small" id="normalBtn">正常市场</button>
-   <button class="btn small" id="liquidityBtn">流动性冲击</button>
-   <button class="btn small red" id="shockBtn">模拟市场冲击</button>
-   <button class="btn small green" id="protectBtn">模拟保护动作</button>
-  </div>
- </div>
- <div class="layout">
-  <div class="left-stack">
-   <section class="panel">
-    <div class="panel-head"><div><div class="eyebrow">01A / SIGNAL ENGINE</div><div class="panel-title">市场风险状态</div><div class="panel-sub">综合价格变化、流动性与市场偏离信号</div></div><span class="tag sim" id="riskTag">SIMULATED</span></div>
-    <div class="panel-body">
-     <div class="risk-row"><div><div class="muted" style="font-size:9px">COMPOSITE RISK INDEX</div><div class="risk-score" id="riskScore">18<span style="font-size:11px;color:var(--muted)"> / 100</span></div></div><div style="text-align:right"><div class="muted" style="font-size:9px">CURRENT STATE</div><b id="riskState" style="font-size:12px;color:var(--green)">NORMAL</b></div></div>
-     <div class="risk-track"><div class="risk-fill" id="riskFill"></div></div>
-     <div style="height:12px"></div>
-     <div class="signal-list">
-      <div class="signal"><i class="dot" id="dotCex"></i><div><b>CEX 价格冲击</b><small id="cexDesc">短周期价格变化处于正常区间</small></div><span class="state" id="cexState">NORMAL</span></div>
-      <div class="signal"><i class="dot" id="dotDex"></i><div><b>DEX 流动性冲击</b><small id="dexDesc">池深与可执行报价稳定</small></div><span class="state" id="dexState">NORMAL</span></div>
-      <div class="signal"><i class="dot" id="dotDiv"></i><div><b>跨市场偏离</b><small id="divDesc">CEX / DEX 报价偏离较小</small></div><span class="state" id="divState">NORMAL</span></div>
-     </div>
-    </div>
-   </section>
-   <section class="panel">
-    <div class="panel-head"><div><div class="eyebrow">01B / PROTECTION POLICY</div><div class="panel-title">由你设定的保护规则</div><div class="panel-sub">保护动作受用户预先授权的规则约束</div></div><span class="tag good">POLICY PREVIEW</span></div>
-    <div class="panel-body">
-     <div class="actions">
-      <div class="action-card"><b>暂停新增买入</b><p>风险达阈值时暂停新增买入策略。</p><span class="tag good">ENABLED</span></div>
-      <div class="action-card"><b>撤销挂单</b><p>调用已连接钱包的订单取消适配器。</p><span class="tag good">ADAPTER REQUIRED</span></div>
-      <div class="action-card"><b>受限保护性退出</b><p>按最低卖出价、滑点与数量约束执行。</p><span class="tag sim">USER AUTH REQUIRED</span></div>
-      <div class="action-card"><b>故障安全</b><p>行情过期、RPC 断开或报价异常时停止自动动作。</p><span class="tag good">DEFAULT ON</span></div>
-     </div>
-     <div style="height:12px"></div>
-     <div class="control-row"><div class="field"><label>风险触发阈值</label><input id="riskThreshold" type="number" min="1" max="100" value="65"></div><div class="field"><label>最大滑点 (%)</label><input id="maxSlip" type="number" min="0.05" max="10" step=".05" value="0.5"></div></div>
-    </div>
-   </section>
-   <section class="panel">
-    <div class="panel-head"><div><div class="eyebrow">01C / EVENT TRACE</div><div class="panel-title">风险事件记录</div></div><span class="tag" id="eventCount">0 EVENTS</span></div>
-    <div class="panel-body"><div class="event-log" id="eventLog"></div></div>
-   </section>
-  </div>
-  <div class="right-stack">
-   <section class="panel viz-panel">
-    <div class="viz-head"><div><div class="eyebrow">02 / MARKET FLOW OBSERVATORY</div><div class="panel-title">市场信号监测网络</div><div class="panel-sub">关系网络 + 信号流 · 示意图，不代表真实资金地址图谱</div></div><span class="tag sim" id="flowMode">SIMULATED FLOW · <span id="flowCount">0</span> PACKETS</span></div>
-    <div class="viz-wrap">
-     <div class="capture-stage" id="graphStage">
-      <div class="orbit-label a">CEX SIGNAL GHOSTS</div><div class="orbit-label b">DEX STATE STREAM</div><div class="orbit-label c">RISK TELEMETRY</div><div class="orbit-label d">CHAIN RESPONSE</div>
-      <canvas id="particleCanvas" aria-hidden="true"></canvas>
-      <svg id="network" viewBox="0 0 680 470" preserveAspectRatio="xMidYMid meet" aria-label="信号粒子被旋转环捕获">
-       <defs>
-        <linearGradient id="captureGradient" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#45dcff"/><stop offset=".52" stop-color="#a28dff"/><stop offset="1" stop-color="#ff6b8e"/></linearGradient>
-        <filter id="ringGlow" x="-100%" y="-100%" width="300%" height="300%"><feGaussianBlur stdDeviation="3.3" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
-        <radialGradient id="coreGradient"><stop offset="0" stop-color="#27345a"/><stop offset=".72" stop-color="#121a2c"/><stop offset="1" stop-color="#111827"/></radialGradient>
-        <linearGradient id="shieldFillA" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#45dcff" stop-opacity=".03"/><stop offset=".45" stop-color="#45dcff" stop-opacity=".18"/><stop offset="1" stop-color="#a28dff" stop-opacity=".07"/></linearGradient>
-        <linearGradient id="shieldFillB" x1="1" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#a28dff" stop-opacity=".02"/><stop offset=".5" stop-color="#a28dff" stop-opacity=".16"/><stop offset="1" stop-color="#45dcff" stop-opacity=".04"/></linearGradient>
-        <filter id="shieldGlow" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="2.4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
-       </defs>
-       <g id="shieldLayer" aria-hidden="true"></g>
-       <g opacity=".6"><path class="flow-rail" d="M18 80 C130 82 150 142 200 175 S266 206 340 235"/><path class="flow-rail" d="M662 82 C550 82 530 142 480 175 S414 206 340 235"/><path class="flow-rail" d="M18 388 C130 388 150 328 200 295 S266 264 340 235"/><path class="flow-rail" d="M662 388 C550 388 530 328 480 295 S414 264 340 235"/></g>
-       <circle cx="340" cy="235" r="184" class="capture-ring outer ring-rotor"/><circle cx="340" cy="235" r="161" class="capture-ring track"/>
-       <circle cx="340" cy="235" r="161" class="capture-ring ring-reverse"/>
-       <circle cx="340" cy="235" r="143" class="capture-ring inner ring-rotor"/>
-       <circle cx="340" cy="235" r="161" class="ring-sweep"/><circle cx="340" cy="235" r="161" class="ring-sweep alt"/>
-       <g id="ringTicks"></g>
-       <circle id="captureFlash" cx="340" cy="235" r="161" class="capture-flash"/>
-       <g>
-        <circle cx="32" cy="80" r="12" class="source-node"/><circle cx="32" cy="80" r="3.5" class="source-core"/><text x="51" y="83" class="source-label">CEX</text>
-        <circle cx="648" cy="80" r="12" class="source-node"/><circle cx="648" cy="80" r="3.5" class="source-core"/><text x="625" y="61" text-anchor="end" class="source-label">DEX</text>
-        <circle cx="32" cy="390" r="12" class="source-node"/><circle cx="32" cy="390" r="3.5" class="source-core"/><text x="51" y="394" class="source-label">RISK</text>
-        <circle cx="648" cy="390" r="12" class="source-node"/><circle cx="648" cy="390" r="3.5" class="source-core"/><text x="625" y="371" text-anchor="end" class="source-label">GUARD</text>
-       </g>
-       <circle cx="340" cy="235" r="106" fill="url(#coreGradient)" stroke="rgba(138,118,255,.35)" stroke-width="1"/>
-       <circle cx="340" cy="235" r="96" fill="none" stroke="rgba(69,220,255,.12)" stroke-dasharray="2 6"/>
-      </svg>
-      <div class="center-core"><div class="core-ring"></div><div><div class="core-state" id="coreState">MONITORING</div><div class="core-value" id="coreValue">18</div><div class="core-note">RISK INDEX / 100</div><div class="capture-status" id="captureStatus">AWAITING SIGNAL</div></div></div>
-     </div>
-     <div class="viz-side">
-      <div class="side-stat sync-field" id="fieldCex"><small>01 · CEX 价格冲击</small><strong id="fieldCexValue">0.00%</strong><div class="hint" id="fieldCexHint">waiting for market signal</div><b>SYNC: WAITING</b></div>
-      <div class="side-stat sync-field" id="fieldDex"><small>02 · DEX 流动性</small><strong id="fieldDexValue">100%</strong><div class="hint" id="fieldDexHint">pool depth baseline</div><b>SYNC: WAITING</b></div>
-      <div class="side-stat sync-field" id="fieldDiv"><small>03 · 市场偏离</small><strong id="fieldDivValue">0.00%</strong><div class="hint" id="fieldDivHint">CEX / DEX spread</div><b>SYNC: WAITING</b></div>
-      <div class="side-stat sync-field" id="fieldAge"><small>04 · 信号新鲜度</small><strong id="fieldAgeValue">— ms</strong><div class="hint" id="fieldAgeHint">source timestamp → received</div><b>SYNC: WAITING</b></div>
-      <div class="side-stat sync-field" id="fieldBlock"><small>MONAD 区块高度</small><strong id="blockHeight">—</strong><div class="hint">chainId 10143 · WSS 只读</div><b>SYNC: WAITING</b></div>
-     </div>
-    </div>
-    <div class="flow-legend"><span class="legend"><i style="background:var(--cyan)"></i>CEX feed</span><span class="legend"><i style="background:var(--green)"></i>DEX liquidity</span><span class="legend"><i style="background:var(--red)"></i>risk propagation</span><span class="legend"><i style="background:var(--purple)"></i>protection route</span></div>
-   </section>
-   <section class="panel">
-    <div class="panel-head"><div><div class="eyebrow">03 / RESPONSE TIMELINE</div><div class="panel-title">风险触发与保护流程</div><div class="panel-sub">时间戳由真实事件采集；模拟模式仅用于交互预览</div></div><span class="tag sim" id="timelineMode">SIMULATION</span></div>
-    <div class="panel-body"><div class="timeline">
-     <div class="timepoint" id="tp0"><small>T0 · SIGNAL</small><b id="t0">—</b></div><div class="timepoint" id="tp1"><small>T1 · RECEIVE</small><b id="t1">—</b></div><div class="timepoint" id="tp2"><small>T2 · DECIDE</small><b id="t2">—</b></div><div class="timepoint" id="tp3"><small>T3 · SUBMIT</small><b id="t3">—</b></div><div class="timepoint" id="tp4"><small>T4 · INCLUDED</small><b id="t4">—</b></div><div class="timepoint" id="tp5"><small>T5 · FINALIZED</small><b id="t5">—</b></div>
-    </div></div>
-   </section>
-  </div>
- </div>
-
- <!-- RESOURCES / TEST LINKS -->
- <section class="resources" id="resources">
-  <div class="resources-head">
-   <div><div class="eyebrow">04 / 资源与测试链接</div><div class="headline">在 Monad 测试网上验证</div><div class="subhead">下列链接均指向官方资源。你可以逐条点击，验证网络、合约与配置状态。</div></div>
-  </div>
-  <div class="res-grid">
-   <a class="res-card" id="resExplorer" href="#" target="_blank" rel="noopener"><span class="res-ico">◈</span><b>Monad 区块浏览器</b><p>查看区块、交易与合约</p><span class="res-status">LINK READY</span></a>
-   <a class="res-card" id="resDocs" href="#" target="_blank" rel="noopener"><span class="res-ico">◧</span><b>Monad 官方文档</b><p>链参数、RPC 与工具</p><span class="res-status">LINK READY</span></a>
-   <a class="res-card" id="resFaucet" href="#" target="_blank" rel="noopener"><span class="res-ico">◉</span><b>测试网水龙头</b><p>领取测试 MON</p><span class="res-status">LINK READY</span></a>
-   <a class="res-card" id="resNotion" href="#" target="_blank" rel="noopener"><span class="res-ico">▤</span><b>项目资源页</b><p>你提供的 Notion 参考</p><span class="res-status">LINK READY</span></a>
-   <a class="res-card" id="resPrivy" href="#" target="_blank" rel="noopener"><span class="res-ico">◐</span><b>Privy 文档</b><p>嵌入式钱包接入</p><span class="res-status">LINK READY</span></a>
-   <a class="res-card" id="resPrivyApi" href="#" target="_blank" rel="noopener"><span class="res-ico">◑</span><b>Privy API / App ID</b><p>鉴权与 App ID 说明</p><span class="res-status">LINK READY</span></a>
-   <a class="res-card" id="resTutorial" href="#" target="_blank" rel="noopener"><span class="res-ico">◇</span><b>无 Gas 方案教程</b><p>Pimlico tutorial1 · Paymaster</p><span class="res-status">LINK READY</span></a>
-   <a class="res-card" id="resBridge" href="#" target="_blank" rel="noopener"><span class="res-ico">⇄</span><b>Monad Bridge</b><p>跨链桥（第三方，谨慎核验）</p><span class="res-status">LINK READY</span></a>
-  </div>
- </section>
-
- <!-- WALLET & INTEGRATION (advanced, collapsed) -->
- <details class="advanced-shell"><summary class="btn">钱包、无 Gas 与合约接入（开发者 / 测试）</summary>
-  <section class="panel addon-panel">
-   <div class="panel-head"><div><div class="eyebrow">05 / 接入配置</div><div class="panel-title">钱包 · Gas · 合约 · 集成状态</div><div class="panel-sub">普通用户无需进入。测试与接入时在这里确认各项状态；未配置的项目不会显示伪造成功。</div></div><span class="tag sim">ADAPTERS RESERVED</span></div>
-   <div class="panel-body">
-    <div class="addon-tabs"><button class="btn small primary" data-tab="wallet">钱包 / Gas</button><button class="btn small" data-tab="contracts">合约清单</button><button class="btn small" data-tab="integration">集成检查</button><button class="btn small" data-tab="evidence">测试证据</button></div>
-
-    <div class="addon-pane active" id="pane-wallet">
-     <div class="addon-grid two">
-      <div class="addon-card"><div class="row-between"><b>Privy 嵌入式钱包</b><span class="tag" id="walletState">NOT CONNECTED</span></div>
-       <p class="mini muted">Privy 负责身份与签名。未加载 SDK 时，按钮仅演示状态，不创建钱包、不签名。</p>
-       <div class="controls"><button class="btn primary" id="mockWallet">模拟连接钱包</button><button class="btn green" id="mockAuthorize">模拟授权</button><button class="btn" id="disconnectWallet">断开</button></div>
-       <div class="kv"><span>Privy App ID</span><span id="privyAppIdState">未配置</span></div>
-       <div class="kv"><span>登录 / 嵌入式钱包</span><span id="privyWalletState">待接 SDK</span></div>
-       <div class="kv"><span>授权状态</span><span id="demoAuthState">NOT AUTHORIZED</span></div>
-       <div class="kv"><span>链支持</span><span>Monad Testnet · 10143</span></div>
-       <div class="kv"><span>测试代币（待核验）</span><span id="testTokenState">0x88b8…055d</span></div>
+<!-- ============ 落地页 ============ -->
+<main id="landingView">
+  <!-- HERO -->
+  <section class="hero" id="top">
+    <div class="hero-glow"></div>
+    <div class="hero-inner">
+      <div class="hero-copy">
+        <div class="eyebrow accent">AUTONOMOUS RISK PROTECTION · ON MONAD</div>
+        <h1>市场异常时，<br><em>让保护先于恐慌发生。</em></h1>
+        <p class="hero-lead">Circuit Breaker 持续监测价格与流动性。一旦触及你设定的条件，便按预先授权的规则自动执行保护性退出。保护范围、退出上限与撤销权，始终在你手中。</p>
+        <div class="hero-actions">
+          <button class="btn btn-primary btn-lg" id="heroConnect">连接钱包，开始保护</button>
+          <a class="btn btn-ghost btn-lg" href="#how">了解运作方式 <span aria-hidden="true">↓</span></a>
+        </div>
+        <div class="hero-proof">
+          <span><i class="check">✓</i> 规则由你设定</span>
+          <span><i class="check">✓</i> 资产无需托管</span>
+          <span><i class="check">✓</i> 随时可撤销</span>
+        </div>
       </div>
-      <div class="addon-card"><div class="row-between"><b>Gas Sponsorship / 无 Gas</b><span class="tag sim" id="gasState">NOT CONFIGURED</span></div>
-       <p class="mini muted">Gas 代付只负责符合条件的交易 Gas，不授予资产权限，也不代替钱包授权。需配置 sponsor policy、合约 allowlist 与服务端凭据。</p>
-       <div class="kv"><span>Gas Sponsor</span><span id="sponsorState">未连接</span></div>
-       <div class="kv"><span>Smart wallet / AA</span><span>待确认支持范围</span></div>
-       <div class="kv"><span>交易权限</span><span>仍由钱包签名 / policy 控制</span></div>
-       <div class="notice slim" id="tutorialHint">tutorial1：请把正确的官方文档 URL 填入 config.js 的 links.tutorial1 后再启用入口。</div>
+      <div class="hero-art">
+        <div class="hero-orbit">
+          <div class="orbit-ring r1"></div><div class="orbit-ring r2"></div><div class="orbit-ring r3"></div>
+          <div class="orbit-sweep"></div>
+          <div class="orbit-core">
+            <span class="core-glyph">ϟ</span>
+            <b>PROTECTED</b>
+            <small>24 / 7 ACTIVE</small>
+          </div>
+          <span class="orbit-node n1"></span><span class="orbit-node n2"></span><span class="orbit-node n3"></span>
+        </div>
+        <div class="hero-art-caption"><span class="pulse-dot"></span> 实时监测中 <b>Monad Testnet</b></div>
       </div>
-     </div>
     </div>
-
-    <div class="addon-pane" id="pane-contracts">
-     <div class="row-between" style="margin-bottom:9px"><div><b>Monad Testnet · 合约清单</b><div class="mini muted">chainId 10143 · 地址来自官方 registry · 点击 via 浏览器核验字节码</div></div><button class="btn primary small" id="verifyContracts">批量检查字节码</button></div>
-     <div class="contract-table-wrap"><table class="contract-table"><thead><tr><th>合约</th><th>Monad Testnet 地址</th><th>说明</th><th>状态</th></tr></thead><tbody id="contractRows"></tbody></table></div>
-     <div class="mini muted" style="margin-top:10px" id="contractSource">Registry：<a href="https://github.com/monad-crypto/protocols" target="_blank" rel="noopener">monad-crypto/protocols ↗</a> · 核验：<a href="https://monadvision.com/" target="_blank" rel="noopener">MonadVision ↗</a> · 空地址表示 registry 未收录，切勿用 Mainnet 地址顶替。</div>
-    </div>
-
-    <div class="addon-pane" id="pane-integration">
-     <div class="addon-grid two">
-      <div class="addon-card"><div class="row-between"><b>集成检查</b><button class="btn small" id="runChecks">运行检查</button></div>
-       <div id="checks" class="mini"><div class="check">链守卫 <span style="color:var(--green)">LOCKED · MONAD 10143</span></div><div class="check">网络 · 只读 RPC <span id="chkRpc">—</span></div><div class="check">Chain ID <span id="chkChain">10143 REQUIRED</span></div><div class="check">Privy 钱包 <span id="chkPrivy">未配置</span></div><div class="check">Gas 代付 <span id="chkGas">未配置</span></div><div class="check">保护合约 <span id="chkContract">未部署</span></div><div class="check">行情源 <span id="chkFeed">SIMULATED</span></div></div>
-       <div class="field" style="margin-top:12px"><label>WSS RPC（只读观察区块，可留空用默认）</label><div class="rpc-row"><input id="wsUrl" type="password" placeholder="wss://…（可留空用公共 RPC）"><button class="btn primary" id="connectWs">连接</button><button class="btn" id="disconnectWs">断开</button></div></div>
-       <div class="rpc-help">连接后校验 eth_chainId=10143 并订阅新区块。仅观察，不发交易。不要把含私密 Key 的 RPC 写进公开仓库。</div>
-      </div>
-      <div class="addon-card"><b>保护动作模拟</b><p class="mini muted">未接入真实钱包与合约时不会执行真实卖出，也不会计入保护成果。</p>
-       <button class="btn red" id="crashBtn">重放崩盘场景</button>
-       <div class="step" id="s1">01 · 市场信号：等待</div><div class="step" id="s2">02 · 策略检查：等待</div><div class="step" id="s3">03 · 执行：演示中已阻断</div>
-      </div>
-     </div>
-    </div>
-
-    <div class="addon-pane" id="pane-evidence">
-     <div class="addon-grid two">
-      <div class="addon-card"><b>证据记录</b><p class="mini muted">每次测试记录数据类型、环境与结果。页面不会编造 tx hash 或成功状态。</p>
-       <div class="kv"><span>行情源</span><span id="evMarket">SIMULATED</span></div><div class="kv"><span>链观察</span><span id="evChain">NOT CONNECTED</span></div><div class="kv"><span>钱包</span><span id="evWallet">NOT CONNECTED</span></div><div class="kv"><span>保护写操作</span><span>BLOCKED · NO ADAPTER</span></div><div class="kv"><span>交易回执</span><span>NONE</span></div>
-       <div class="controls" style="margin-top:12px"><button class="btn primary" id="exportEvidence">导出证据 JSON</button><button class="btn" id="clearEvidence">清空日志</button></div>
-      </div>
-      <div class="addon-card"><b>测试记录</b><div id="evidenceLog" class="evidence-log"><div class="mini muted">等待测试事件…</div></div></div>
-     </div>
-    </div>
-   </div>
   </section>
- </details>
 
- <p class="foot">Circuit Breaker · PUBLIC TESTNET DEMO · NOT FINANCIAL ADVICE. 风险评分为规则型演示指标，不构成真实崩盘概率。链上保护动作必须经过连接钱包并授权、价格约束与合约验证。演示数据始终标注为 SIMULATED，真实结果以链上回执为准。</p>
+  <!-- 价值 -->
+  <section class="features wrap">
+    <div class="feature">
+      <span class="feature-icon">◈</span>
+      <h3>提前发现异常</h3>
+      <p>联合观察价格冲击、流动性变化与跨市场偏离，把「发现风险」到「采取行动」的时间差压到最短。</p>
+    </div>
+    <div class="feature">
+      <span class="feature-icon">◇</span>
+      <h3>规则由你决定</h3>
+      <p>保护资产、触发跌幅、退出比例与滑点上限均由你预设。执行方无法扩大你划定的边界。</p>
+    </div>
+    <div class="feature">
+      <span class="feature-icon">◉</span>
+      <h3>每一步都有记录</h3>
+      <p>触发原因、执行状态与结果一目了然。你随时知道保护发生了什么、为什么发生。</p>
+    </div>
+  </section>
+
+  <!-- 如何运作 -->
+  <section class="section wrap" id="how">
+    <div class="section-head">
+      <div class="eyebrow">HOW IT WORKS</div>
+      <h2>四步，把风险交给规则</h2>
+      <p>从连接到保护，整个过程只需几分钟。之后由规则持续为你值守。</p>
+    </div>
+    <div class="steps">
+      <article class="step-card">
+        <span class="step-num">01</span><h3>连接钱包</h3>
+        <p>使用 Privy 嵌入式钱包，邮箱或社交账号即可进入，无需助记词，也不用先准备 Gas。</p>
+      </article>
+      <article class="step-card">
+        <span class="step-num">02</span><h3>设定保护规则</h3>
+        <p>选择要保护的资产与数量，设定触发跌幅、最多退出比例、滑点上限与有效期。</p>
+      </article>
+      <article class="step-card">
+        <span class="step-num">03</span><h3>一次授权，持续守护</h3>
+        <p>确认授权后规则开始生效。监测引擎持续运行，符合你设定的条件才会触发动作。</p>
+      </article>
+      <article class="step-card">
+        <span class="step-num">04</span><h3>风险触发，自动保护</h3>
+        <p>触及阈值时按规则执行受限退出，并在活动记录里留下完整过程与结果。</p>
+      </article>
+    </div>
+  </section>
+
+  <!-- 安全 -->
+  <section class="section safety" id="safety">
+    <div class="wrap safety-inner">
+      <div class="safety-copy">
+        <div class="eyebrow">BUILT WITH LIMITS</div>
+        <h2>保护你的，<br>不会替你做主。</h2>
+        <p>规则在执行前就写死了边界。行情过期、报价异常或网络中断时，系统默认停止自动动作，而不是贸然交易。</p>
+      </div>
+      <div class="safety-grid">
+        <div class="safety-item"><span>01</span><b>资产不托管</b><p>资产留在你的钱包，保护规则只授予受限的操作权限。</p></div>
+        <div class="safety-item"><span>02</span><b>边界写死在规则里</b><p>退出比例、滑点、有效期都是硬约束，执行方无法突破。</p></div>
+        <div class="safety-item"><span>03</span><b>异常即停</b><p>数据过期、RPC 中断或报价异常时自动停止，回到安全状态。</p></div>
+        <div class="safety-item"><span>04</span><b>随时撤销</b><p>你可以在任何时刻撤销保护，立即停止后续自动动作。</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section class="section wrap" id="faq">
+    <div class="section-head"><div class="eyebrow">FAQ</div><h2>常见问题</h2></div>
+    <div class="faq-list">
+      <details open><summary> Circuit Breaker 会在我不知情时卖出资产吗？<i></i></summary><p>不会。任何保护动作都必须先由你设定规则并完成一次授权。执行严格限定在你设定的触发条件、退出比例、滑点上限与有效期内，超出边界不会执行。</p></details>
+      <details><summary> 我的资产会被转到平台吗？<i></i></summary><p>不会。资产始终留在你的钱包里。你授予的是一条受约束的规则权限，而不是把资产托管给任何第三方。权限可以随时撤销。</p></details>
+      <details><summary> 什么情况下保护不会执行？<i></i></summary><p>当行情数据过期、跨市场报价异常、RPC 连接中断，或执行结果会超出你设定的滑点与数量边界时，系统默认停止自动动作，把决定权交还给你。</p></details>
+      <details><summary> 我需要准备 Gas 吗？<i></i></summary><p>嵌入式钱包配合无 Gas 方案时，符合条件的保护交易由代付服务承担 Gas，你无需先持有原生代币。具体支持范围以钱包界面提示为准。</p></details>
+      <details><summary> 这是在哪条链上运行？<i></i></summary><p>当前版本运行在 Monad Testnet（chainId 10143）。网站本身托管在 Vercel，所有链上交互会被校验并锁定在这条测试网，不会误连主网或其它链。</p></details>
+    </div>
+  </section>
+
+  <section class="cta-band wrap">
+    <div><div class="eyebrow">READY WHEN YOU ARE</div><h2>现在，为你的资产加一道防线。</h2></div>
+    <button class="btn btn-primary btn-lg" id="bottomConnect">连接钱包</button>
+  </section>
 </main>
 
-<div class="toast" id="toast"></div>
+<!-- ============ 产品面板 ============ -->
+<main id="appView" hidden>
+  <div class="app-head wrap">
+    <div>
+      <div class="eyebrow">YOUR PROTECTION</div>
+      <h1>保护面板</h1>
+      <p>查看资产保护状态、风险信号与执行记录。</p>
+    </div>
+    <button class="btn btn-primary" id="createBtn"><span class="plus">＋</span> 新建保护</button>
+  </div>
+
+  <!-- 概览 -->
+  <section class="overview wrap">
+    <div class="stat-card">
+      <span class="stat-label">钱包资产总额</span>
+      <strong id="statTotal">—</strong>
+      <span class="stat-foot">Monad Testnet</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-label">受保护资产</span>
+      <strong id="statProtected">—</strong>
+      <span class="stat-foot" id="statCoverage">0% 已覆盖</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-label">生效中的保护</span>
+      <strong id="statActive">0</strong>
+      <span class="stat-foot">条规则运行中</span>
+    </div>
+    <div class="stat-card stat-risk">
+      <span class="stat-label">当前风险等级</span>
+      <strong id="statRisk">低</strong>
+      <span class="stat-foot" id="statRiskNote">市场平稳</span>
+    </div>
+  </section>
+
+  <div class="app-grid wrap">
+    <!-- 左列 -->
+    <div class="app-col">
+      <section class="panel">
+        <div class="panel-head">
+          <div><div class="eyebrow">PROTECTED POSITIONS</div><h2>我的保护</h2></div>
+          <span class="count-badge" id="positionsCount">0 条</span>
+        </div>
+        <div class="panel-body">
+          <div class="empty-state" id="positionsEmpty">
+            <div class="empty-icon">◇</div>
+            <h3>还没有保护规则</h3>
+            <p>创建第一条规则，让监测引擎开始为你值守。整个过程不到两分钟。</p>
+            <button class="btn btn-primary" id="createFirstBtn">创建第一个保护</button>
+          </div>
+          <div class="position-list" id="positionsList" hidden></div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-head">
+          <div><div class="eyebrow">ACTIVITY</div><h2>活动记录</h2></div>
+          <span class="count-badge" id="activityCount">0 条</span>
+        </div>
+        <div class="panel-body">
+          <div class="empty-state compact" id="activityEmpty"><p>连接钱包后，保护相关的操作会显示在这里。</p></div>
+          <div class="activity-list" id="activityList" hidden></div>
+        </div>
+      </section>
+    </div>
+
+    <!-- 右列：实时监测 -->
+    <div class="app-col">
+      <section class="panel monitor-panel">
+        <div class="panel-head">
+          <div><div class="eyebrow">LIVE MONITOR</div><h2>实时风险监测</h2></div>
+          <span class="live-badge"><i></i> LIVE</span>
+        </div>
+        <div class="monitor-body">
+          <div class="risk-summary">
+            <div class="risk-score-block">
+              <span class="risk-label">综合风险指数</span>
+              <div class="risk-score"><b id="riskScore">12</b><span>/ 100</span></div>
+            </div>
+            <div class="risk-state-block">
+              <span class="risk-label">当前状态</span>
+              <b id="riskState">平稳</b>
+              <small id="riskNote">所有信号处于正常区间</small>
+            </div>
+          </div>
+          <div class="risk-track"><i id="riskTrackFill"></i></div>
+
+          <div class="capture-stage" id="graphStage">
+            <canvas id="particleCanvas" aria-hidden="true"></canvas>
+            <svg id="network" viewBox="0 0 680 470" preserveAspectRatio="xMidYMid meet" aria-label="风险信号监测可视化">
+              <defs>
+                <linearGradient id="captureGradient" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#45dcff"/><stop offset=".52" stop-color="#a28dff"/><stop offset="1" stop-color="#ff6b8e"/></linearGradient>
+                <filter id="ringGlow" x="-100%" y="-100%" width="300%" height="300%"><feGaussianBlur stdDeviation="3.3" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+                <radialGradient id="coreGradient"><stop offset="0" stop-color="#27345a"/><stop offset=".72" stop-color="#121a2c"/><stop offset="1" stop-color="#111827"/></radialGradient>
+                <linearGradient id="shieldFillA" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#45dcff" stop-opacity=".03"/><stop offset=".45" stop-color="#45dcff" stop-opacity=".18"/><stop offset="1" stop-color="#a28dff" stop-opacity=".07"/></linearGradient>
+                <linearGradient id="shieldFillB" x1="1" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#a28dff" stop-opacity=".02"/><stop offset=".5" stop-color="#a28dff" stop-opacity=".16"/><stop offset="1" stop-color="#45dcff" stop-opacity=".04"/></linearGradient>
+                <filter id="shieldGlow" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="2.4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+              </defs>
+              <g id="shieldLayer" aria-hidden="true"></g>
+              <g opacity=".6"><path class="flow-rail" d="M18 80 C130 82 150 142 200 175 S266 206 340 235"/><path class="flow-rail" d="M662 82 C550 82 530 142 480 175 S414 206 340 235"/><path class="flow-rail" d="M18 388 C130 388 150 328 200 295 S266 264 340 235"/><path class="flow-rail" d="M662 388 C550 388 530 328 480 295 S414 264 340 235"/></g>
+              <circle cx="340" cy="235" r="184" class="capture-ring outer ring-rotor"/><circle cx="340" cy="235" r="161" class="capture-ring track"/>
+              <circle cx="340" cy="235" r="161" class="capture-ring ring-reverse"/>
+              <circle cx="340" cy="235" r="143" class="capture-ring inner ring-rotor"/>
+              <circle cx="340" cy="235" r="161" class="ring-sweep"/><circle cx="340" cy="235" r="161" class="ring-sweep alt"/>
+              <g id="ringTicks"></g>
+              <circle id="captureFlash" cx="340" cy="235" r="161" class="capture-flash"/>
+              <g>
+                <circle cx="32" cy="80" r="12" class="source-node"/><circle cx="32" cy="80" r="3.5" class="source-core"/><text x="51" y="83" class="source-label">PRICE</text>
+                <circle cx="648" cy="80" r="12" class="source-node"/><circle cx="648" cy="80" r="3.5" class="source-core"/><text x="625" y="61" text-anchor="end" class="source-label">LIQUIDITY</text>
+                <circle cx="32" cy="390" r="12" class="source-node"/><circle cx="32" cy="390" r="3.5" class="source-core"/><text x="51" y="394" class="source-label">DIVERGENCE</text>
+                <circle cx="648" cy="390" r="12" class="source-node"/><circle cx="648" cy="390" r="3.5" class="source-core"/><text x="625" y="371" text-anchor="end" class="source-label">CHAIN</text>
+              </g>
+              <circle cx="340" cy="235" r="106" fill="url(#coreGradient)" stroke="rgba(138,118,255,.35)" stroke-width="1"/>
+              <circle cx="340" cy="235" r="96" fill="none" stroke="rgba(69,220,255,.12)" stroke-dasharray="2 6"/>
+            </svg>
+            <div class="center-core" id="centerCore">
+              <div class="core-ring"></div>
+              <b id="coreValue">12</b>
+              <span id="coreState">MONITORING</span>
+            </div>
+          </div>
+
+          <div class="signal-grid">
+            <div class="signal-item"><span>价格冲击</span><b id="sigPrice">0.12%</b></div>
+            <div class="signal-item"><span>流动性深度</span><b id="sigLiquidity">98%</b></div>
+            <div class="signal-item"><span>市场偏离</span><b id="sigDivergence">0.08%</b></div>
+            <div class="signal-item"><span>信号延迟</span><b id="sigLatency">34 ms</b></div>
+          </div>
+
+          <div class="monitor-foot">
+            <span>最近更新 · <span id="lastUpdate">刚刚</span></span>
+            <button class="btn btn-subtle" id="drillBtn">风险演练</button>
+          </div>
+          <p class="monitor-hint">风险演练用模拟行情检验你的保护规则，不影响真实资产。</p>
+        </div>
+      </section>
+    </div>
+  </div>
+</main>
+
+<!-- ============ 页脚 ============ -->
+<footer class="site-footer">
+  <div class="wrap footer-inner">
+    <div class="footer-brand"><span class="brand-mark sm">ϟ</span><span>CIRCUIT BREAKER</span></div>
+    <p>运行在 Monad Testnet · 面向测试与体验的保护产品。风险指数为规则型指标，不构成投资建议或真实崩盘概率。</p>
+    <div class="footer-links">
+      <a href="https://docs.monad.xyz" target="_blank" rel="noopener">Monad 文档 ↗</a>
+      <a href="https://testnet.monadexplorer.com" target="_blank" rel="noopener">区块浏览器 ↗</a>
+    </div>
+  </div>
+</footer>
+
+<!-- ============ 弹窗 ============ -->
+<div class="modal-backdrop" id="walletModal" hidden>
+  <div class="modal">
+    <button class="modal-close" data-close aria-label="关闭">×</button>
+    <div class="modal-icon">ϟ</div>
+    <h2>连接钱包</h2>
+    <p class="modal-sub">选择一种方式进入 Circuit Breaker。当前为 Monad Testnet 沙盒环境，不涉及真实资产。</p>
+    <div class="wallet-options">
+      <button class="wallet-option" data-provider="privy">
+        <span class="wo-icon privy">◐</span>
+        <span class="wo-text"><b>Privy 嵌入式钱包 <em>推荐</em></b><small>邮箱或社交账号登录，无需助记词</small></span>
+        <span class="wo-arrow">→</span>
+      </button>
+      <button class="wallet-option" data-provider="wallet">
+        <span class="wo-icon">◇</span>
+        <span class="wo-text"><b>其他钱包</b><small>连接已安装的 EVM 钱包</small></span>
+        <span class="wo-arrow">→</span>
+      </button>
+    </div>
+    <p class="modal-note">连接即表示你了解：本产品处于测试阶段，请仅使用测试资产。</p>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="createModal" hidden>
+  <div class="modal modal-wide">
+    <button class="modal-close" data-close aria-label="关闭">×</button>
+    <div class="eyebrow">NEW PROTECTION</div>
+    <h2>新建保护规则</h2>
+    <p class="modal-sub">设定你的保护边界。规则生效后由监测引擎持续值守，随时可以撤销。</p>
+    <form id="createForm">
+      <div class="form-grid">
+        <label class="field"><span>保护资产</span>
+          <select id="fAsset">
+            <option value="MON">MON · 原生代币</option>
+            <option value="WMON">WMON · Wrapped MON</option>
+            <option value="USDC">USDC · 稳定币</option>
+          </select>
+        </label>
+        <label class="field"><span>保护数量</span>
+          <div class="input-suffix"><input id="fAmount" type="number" min="0.01" step="0.01" value="10" required><b id="fAmountUnit">MON</b></div>
+        </label>
+      </div>
+      <div class="form-grid three">
+        <label class="field"><span>触发跌幅</span>
+          <div class="input-suffix"><input id="fDrop" type="number" min="1" max="50" step="1" value="8" required><b>%</b></div>
+        </label>
+        <label class="field"><span>最多退出</span>
+          <div class="input-suffix"><input id="fExit" type="number" min="5" max="100" step="5" value="50" required><b>%</b></div>
+        </label>
+        <label class="field"><span>滑点上限</span>
+          <div class="input-suffix"><input id="fSlip" type="number" min="0.1" max="10" step="0.1" value="1" required><b>%</b></div>
+        </label>
+      </div>
+      <label class="field"><span>有效期</span>
+        <select id="fDuration">
+          <option value="24 小时">24 小时</option>
+          <option value="7 天" selected>7 天</option>
+          <option value="30 天">30 天</option>
+        </select>
+      </label>
+      <div class="policy-preview" id="policyPreview"></div>
+      <button class="btn btn-primary btn-block btn-lg" type="submit" id="createSubmit">确认并授权</button>
+      <p class="form-note">提交后需要你在钱包中确认一次授权。授权仅针对上述规则边界。</p>
+    </form>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="resultModal" hidden>
+  <div class="modal modal-result">
+    <button class="modal-close" data-close aria-label="关闭">×</button>
+    <div class="result-icon" id="resultIcon">✓</div>
+    <h2 id="resultTitle">保护已执行</h2>
+    <p class="modal-sub" id="resultSub"></p>
+    <div class="result-detail" id="resultDetail"></div>
+    <button class="btn btn-primary btn-block" data-close>完成</button>
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
 <script src="config.js"></script>
 <script src="app.js"></script>
 </body>
