@@ -24,11 +24,12 @@ window.MCB_CONFIG = {
     chainName: "Monad Testnet",
     // ✅ 官方公共 HTTP RPC（只读观察用；生产请换自己的服务端代理）
     rpcHttp: "https://testnet-rpc.monad.xyz",
-    // ✅ 官方公共 WSS RPC
-    rpcWs: "wss://testnet-rpc.monad.xyz/ws",
+    // ✅ 官方公共 WSS RPC（实测：端点不带 /ws；/ws 路径返回 405）
+    rpcWs: "wss://testnet-rpc.monad.xyz",
     // ✅ Monad 官方区块浏览器（用于「查看交易/合约」测试链接）
     explorer: "https://testnet.monadexplorer.com",
-    blockSubscription: "monadNewHeads",
+    // ✅ 订阅方法：标准 Ethereum newHeads（实测通过；monadNewHeads 无效）
+    blockSubscription: "newHeads",
     faucet: "https://faucet.monad.xyz",
   },
 

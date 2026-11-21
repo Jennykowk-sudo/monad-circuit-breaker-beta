@@ -293,7 +293,7 @@ function applyScenario(key) {
   $("sigPrice").textContent = s.price;
   $("sigLiquidity").textContent = s.liquidity;
   $("sigDivergence").textContent = s.divergence;
-  $("sigLatency").textContent = s.latency;
+  // sigLatency（链上区块）由 WSS 实时订阅驱动，不受模拟场景覆盖
   $("lastUpdate").textContent = fmtTime();
 }
 function runDrill() {
@@ -470,17 +470,108 @@ function buildGraph() {
   });
 }
 
-/* ---------- 只读链观察（静默显示区块高度，不暴露配置） ---------- */
+/* ---------- Monad Testnet 实时区块订阅（WSS · 只读） ----------
+ * 连接公共 WSS → 校验 chainId=10143 → eth_subscribe(newHeads)
+ * 每个新区块：更新链状态、驱动粒子信号、刷新「最近更新」。
+ * 断线自动重连；所有链上访问经 ChainGuard 锁定测试网。            */
+const chainLive = {
+  ws: null,
+  subId: null,
+  reqId: 1,
+  reconnectTimer: null,
+  connected: false,
+  lastBlock: null,
+  pending: new Map(),
+};
+
+function chainSend(method, params = []) {
+  return new Promise((resolve, reject) => {
+    if (!chainLive.ws || chainLive.ws.readyState !== WebSocket.OPEN) return reject(new Error("WS 未连接"));
+    const id = chainLive.reqId++;
+    const timer = setTimeout(() => { chainLive.pending.delete(id); reject(new Error("RPC 超时: " + method)); }, 8000);
+    chainLive.pending.set(id, { resolve, reject, timer });
+    chainLive.ws.send(JSON.stringify({ jsonrpc: "2.0", id, method, params }));
+  });
+}
+
+function setChainStatus(kind) {
+  const badge = document.querySelector(".live-badge");
+  if (!badge) return;
+  badge.className = "live-badge " + kind;
+  const txt = kind === "live" ? "LIVE" : kind === "connecting" ? "CONNECTING" : "OFFLINE";
+  badge.innerHTML = "<i></i> " + txt;
+  if (kind === "connecting") $("sigLatency").textContent = "连接中…";
+  else if (kind === "offline") $("sigLatency").textContent = "离线";
+  // live 时区块高度由 handleNewBlock 填入真实数值
+}
+
+function handleNewBlock(block) {
+  const num = parseInt(block.number, 16);
+  if (!Number.isFinite(num)) return;
+  chainLive.lastBlock = num;
+  $("lastUpdate").textContent = fmtTime();
+  // 用「链上区块」位显示真实区块高度，让实时性可见
+  $("sigLatency").textContent = "#" + num.toLocaleString("en-US");
+  // 每个新区块驱动一波信号粒子（视觉动画绑定到真实链事件）
+  if (!reduceMotion) {
+    const color = state.scenario === "drill" ? "red" : "cyan";
+    const count = state.scenario === "drill" ? 3 : 1 + Math.floor(Math.random() * 2);
+    for (let i = 0; i < count; i++) setTimeout(() => spawnGhost(color, null, true), i * 60);
+  }
+}
+
+function scheduleReconnect() {
+  if (chainLive.reconnectTimer) return;
+  chainLive.reconnectTimer = setTimeout(() => { chainLive.reconnectTimer = null; observeChain(); }, 5000);
+}
+
 async function observeChain() {
-  const rpc = (NET.rpcHttp || "").trim();
-  if (!rpc) return;
+  const url = (NET.rpcWs || "").trim();
+  if (!url) { setChainStatus("offline"); return; }
+  setChainStatus("connecting");
   try {
-    ChainGuard.assertEndpoint(rpc);
-    const r = await fetch(rpc, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "eth_blockNumber", params: [] }) });
-    const j = await r.json();
-    ChainGuard.assertChainId((await (await fetch(rpc, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ jsonrpc: "2.0", id: 2, method: "eth_chainId", params: [] }) })).json()).result, "RPC");
-    if (j.result) $("sigLatency").textContent = "已同步";
-  } catch (e) { /* 保持默认显示，不向用户暴露错误细节 */ }
+    ChainGuard.assertEndpoint(url);
+    chainLive.ws = new WebSocket(url);
+  } catch (e) { setChainStatus("offline"); scheduleReconnect(); return; }
+
+  const ws = chainLive.ws;
+  const fail = () => { if (chainLive.ws === ws) { chainLive.connected = false; setChainStatus("offline"); scheduleReconnect(); } };
+  ws.onerror = fail;
+  ws.onclose = () => { if (chainLive.ws === ws) fail(); };
+  ws.onopen = async () => {
+    try {
+      const chain = await chainSend("eth_chainId");
+      ChainGuard.assertChainId(chain.result, "WSS RPC"); // 强制 10143，拒绝主网
+      const sub = await chainSend("eth_subscribe", [NET.blockSubscription || "newHeads"]);
+      if (sub.error) throw new Error(sub.error.message || "订阅失败");
+      chainLive.subId = sub.result;
+      chainLive.connected = true;
+      setChainStatus("live");
+      // 订阅成功后先取一次当前区块，避免面板空白等待
+      try {
+        const head = await chainSend("eth_getBlockByNumber", ["latest", false]);
+        if (head.result && head.result.number) handleNewBlock(head.result);
+      } catch (e) { /* 首个区块取不到不影响后续推送 */ }
+    } catch (e) {
+      console.warn("[ChainGuard] 实时订阅未建立：", e.message);
+      try { ws.close(); } catch (_) {}
+      fail();
+    }
+  };
+  ws.onmessage = (e) => {
+    let msg;
+    try { msg = JSON.parse(e.data); } catch (_) { return; }
+    if (msg.id && chainLive.pending.has(msg.id)) {
+      const p = chainLive.pending.get(msg.id);
+      chainLive.pending.delete(msg.id);
+      clearTimeout(p.timer);
+      msg.error ? p.reject(new Error(msg.error.message || "RPC 错误")) : p.resolve(msg);
+      return;
+    }
+    if (msg.method === "eth_subscription" && msg.params && msg.params.subscription === chainLive.subId && msg.params.result) {
+      handleNewBlock(msg.params.result);
+    }
+  };
 }
 
 /* ---------- 事件绑定 ---------- */
@@ -518,9 +609,8 @@ function init() {
   bind();
   renderAll();
   requestAnimationFrame(frame);
-  stream(26, "cyan");
-  setInterval(() => { if (!reduceMotion && state.connected) stream(1 + Math.floor(Math.random() * 2), "cyan"); }, 2600);
-  observeChain();
+  stream(16, "cyan"); // 初始入场动画；此后粒子由真实区块驱动
+  observeChain();     // 连接 Monad Testnet WSS，订阅实时区块
 }
 if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init); else init();
 })();
